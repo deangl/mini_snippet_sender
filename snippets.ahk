@@ -30,6 +30,11 @@ SnippetsGuiClose:
 
 
 creatSnippets(snippetsDistList){
+	p := getCaretPos()
+	if not p.x
+	{
+		return
+	}
 	global TheText
 	Gui, Snippets:new, -MaximizeBox -MinimizeBox -Caption,Snippets
 	Gui, Snippets:add, edit, vTheEdit
@@ -44,10 +49,34 @@ creatSnippets(snippetsDistList){
 		}
 
 	}
+
 	Gui,Snippets:add, text, , %sList%
 	Gui, Add, Button, Hidden w0 h0 Default gSetMatch
-	Gui,Snippets:show, y50
+	Gui, Snippets:Show, Hide
+	Gui, +LastFound
+	WinGetPos, , , w, h
+
+	cx := p.x
+	cy := p.y
+	winPos := calcWinPos(cx,cy,w,h)
+	x:=winPos.x
+	y:=winPos.y
+	Gui, Snippets:show, x%x% y%y%
 	return
+}
+
+calcWinPos(cx,cy,w,h){
+	; 不要出屏幕边缘
+	winW := A_ScreenWidth
+	winH := A_ScreenHeight
+	x := Min(cx+5, winW-w-10)
+	if (cy+h+30 < winH -5)
+	{
+		y:=cy+30
+	}else{
+		y := cy - 30 - h
+	}
+	return {x:x, y:y}
 }
 
 clearSnippetDictList(sdList){
