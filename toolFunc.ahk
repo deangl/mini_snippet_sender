@@ -294,19 +294,23 @@ getCaretPos(){
 	{
 		Acc_Caret := Acc_ObjectFromWindow(WinExist("ahk_class Chrome_WidgetWin_1"), OBJID_CARET := 0xFFFFFFF8)
 		Caret_Location := Acc_Location(Acc_Caret)
-		; x := Caret_Location.x
-		; y := Caret_Location.y
-		rslt := {x:Caret_Location.x, y:Caret_Location.y}
-		return rslt
+		x := Caret_Location.x
+		y := Caret_Location.y
 	}
 	else
 	{
 		WinGetPos, winX, winY
 		x := A_CaretX+winX
 		y:= A_CaretY+winY
-		rslt := {x:x,y:y}
-		return rslt
+
 	}
+	if not x
+	{
+		x :=  A_ScreenWidth/2
+		y :=  100
+	}
+	rslt := {x:x,y:y}
+	return rslt
 }
 
 
@@ -326,20 +330,6 @@ getCaretPos(){
 ;------------------------------------------------------------------------------
 
 
-
-; http://www.autohotkey.com/board/topic/77303-acc-library-ahk-l-updated-09272012/
-; https://dl.dropbox.com/u/47573473/Web%20Server/AHK_L/Acc.ahk
-;------------------------------------------------------------------------------
-; Acc.ahk Standard Library
-; by Sean
-; Updated by jethrow:
-; 	Modified ComObjEnwrap params from (9,pacc) --> (9,pacc,1)
-; 	Changed ComObjUnwrap to ComObjValue in order to avoid AddRef (thanks fincs)
-; 	Added Acc_GetRoleText & Acc_GetStateText
-; 	Added additional functions - commented below
-; 	Removed original Acc_Children function
-; last updated 2/25/2010
-;------------------------------------------------------------------------------
 
 Acc_Init()
 {
