@@ -1,0 +1,33 @@
+﻿#include acc.ahk2
+getCaretAbsolute(){
+	oCaretPos := {x:0,y:0}
+	try oCaretPos := Acc.ElementFromHandle("A", Acc.ObjId.Caret).Location
+
+
+	if (oCaretPos.x=0 && oCaretPos.y=0){
+		_ :=  A_CoordModeCaret
+		A_CoordModeCaret := "Screen"
+		CaretGetPos(&x, &y)
+		A_CoordModeCaret := _
+		return {x:x, y:y}
+	}
+	else{
+		return oCaretPos
+	}
+}
+
+
+getCaretPos(){
+	caretPos := getCaretAbsolute()
+	x := caretPos.x
+	y := caretPos.y
+
+	if not x
+	{
+		x :=  A_ScreenWidth/2
+		y :=  100
+	}
+	rslt := {x:x,y:y}
+	return rslt
+}
+

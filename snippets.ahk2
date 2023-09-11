@@ -1,0 +1,203 @@
+﻿#singleinstance
+#Include ".\toolFunc.ahk2"
+#Include ".\json.ahk2"
+global TheEdit
+global toSend
+global Snippets
+
+jsonKeyText := '{"hKey":"#i"}'
+try jsonKeyText := FileRead(".\conf.json")
+
+hKey := Jxon_load(&jsonKeyText)["hKey"]
+
+hotkey hKey, gogo
+
+gogo(*){ 
+	snippetsFile := ".\snippets.json"
+	jsonText := FileRead(snippetsFile)
+
+	SD := Jxon_load(&jsonText)
+	sendSnippet(SD)
+	return
+} 
+
+SnippetsGuiEscape(*)
+{ 
+	global Snippets
+	Snippets.Destroy()
+	return
+}
+
+SnippetsGuiClose(*)
+{ 
+	global Snippets
+	Snippets.Destroy()
+	return
+}
+
+
+
+creatSnippets(snippetsDistList){
+	p := getCaretPos()
+	if not p.x
+	{
+		return
+	}
+	global TheText
+	global Snippets
+	Snippets := Gui("-MaximizeBox -MinimizeBox -Caption", "Snippets")
+	Snippets.OnEvent("Close", SnippetsGuiClose)
+	Snippets.OnEvent("Escape", SnippetsGuiEscape)
+	ogcTheEdit := Snippets.add("edit", "vTheEdit")
+	sList:=""
+
+	for i,l in snippetsDistList{
+		sList := sList . "-------------------`n"
+		for k,v in l{
+			sList := sList . k . ":`t"
+			sList := sList . v["name"]
+			sList := sList . "`n"
+		}
+
+	}
+
+	Snippets.add("text", , sList)
+	ogcButton := Snippets.Add("Button", "Hidden w0 h0 Default")
+	ogcButton.OnEvent("Click", SetMatch.Bind("Normal"))
+	Snippets.Show("Hide")
+	Snippets.Opt("+LastFound")
+
+	Snippets.GetPos( , ,&w,&h)
+
+	cx := p.x
+	cy := p.y
+	winPos := calcWinPos(cx,cy,w,h)
+
+	x:=winPos.x
+	y:=winPos.y
+	Snippets.show("x" . x . " y" . y)
+	return
+}
+
+calcWinPos(cx,cy,w,h){
+	; 不要出屏幕边缘
+	winW := A_ScreenWidth
+	winH := A_ScreenHeight
+
+	x := Min(cx+5, winW-w-10)
+	; msgbox(" cx:" . cx . " winW:" . winW . " w:" . w . " x:" . x)
+	if (cy+h+30 < winH -5)
+	{
+		y:=cy+30
+	}else{
+		y := cy - 30 - h
+	}
+	return {x:x, y:y}
+}
+
+clearSnippetDictList(sdList){
+	; 处理一个list中的obj们，如果有重复的key名，就在后面加数字后缀
+	allKeys := Map()
+	rslt := []
+	for i,l in sdList{
+		r := Map()
+		for k,v in l{
+			if allKeys.has(k)
+			{
+				k:= k . i
+			}
+			else
+			{
+				allKeys[k] := 1
+			}
+			r[k] := v
+		}
+		rslt.push(r)
+	}
+
+	return rslt
+}
+
+getMatchSnippet(snippetsDistList){
+	global TheEdit
+	oSaved := Snippets.Submit()
+	TheEdit := oSaved.TheEdit
+	k:= TheEdit
+	Snippets.Destroy()
+	for i,l in snippetsDistList{
+		try{
+			if l[k]["string"]{
+				return l[k]["string"]
+			}
+		}
+
+	}
+
+}
+
+
+getWindowInfo(){
+	title := WinGetTitle("A")
+	cid := WinGetId("A")
+	rslt := {title:title, cid:cid}
+	return rslt
+}
+
+
+
+sendSnippet(snippetsConf){
+	global toSend
+	toSend := Map()
+	sDict := "" 
+	winInfo := getWindowInfo()
+	for k,v in snippetsConf{
+		if InStr(winInfo.title, k){
+			sDict := [v]
+			break
+		}
+	}
+	; 如果有设置为any的key，也它对任意窗口有效。
+	if snippetsConf["any"]{
+		if not sDict{
+			sDict := [snippetsConf["any"]]
+		} else{
+			sDict.push(snippetsConf["any"])
+		}
+	}
+	if sDict{
+		sDict := clearSnippetDictList(sDict)
+		toSend.winInfo := winInfo
+		toSend.sDict := sDict
+		creatSnippets(sDict)
+	}
+	return
+}
+
+
+SetMatch(A_GuiEvent, GuiCtrlObj, Info, *)
+{ 
+	global toSend
+	snippetGot := getMatchSnippet(toSend.sDict)
+	cid:= toSend.winInfo.cid
+	toFocus := "ahk_id " . cid
+	ControlFocus cid
+	snippetForPos := StrReplace(snippetGot, "``n", "n")
+	iPos:=InStr(snippetForPos, "<@>")
+	l:=strlen(snippetForPos)
+
+	snippetGot := StrReplace(snippetGot, "``n", "`r`n")
+
+	n := l-iPos-2
+
+	snippetGot := StrReplace(snippetGot, "<@>")
+	SendInput "{Text}" snippetGot
+	if iPos{
+		Loop n
+		{
+			SendInput("{Left}")
+		}
+	}
+	return
+} 
+
+

@@ -3,6 +3,10 @@
 	"jys": {"name":"静夜思","string":"静夜思`n床前明月光，疑是地上霜。`n举头望明月，低头思故乡。"},
 	"hlo": {"name":"你好呀","string":"我说，<@>，你还好吗？"}
     },
+    "- Notepad":{
+	"jys": {"name":"静夜思","string":"静夜思`n床前明月光，疑是地上霜。`n举头望明月，低头思故乡。"},
+	"hlo": {"name":"你好呀","string":"我说，<@>，你还好吗？"}	
+    },
     "any":{
 	"lazy":{"name":"懒","string":"懒就用snippets"},
 	"hlo":{"name":"打招呼","string":"Hi,Snippets"}
