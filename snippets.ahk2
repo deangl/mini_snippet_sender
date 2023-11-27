@@ -139,7 +139,8 @@ getMatchSnippet(snippetsDistList){
 getWindowInfo(){
 	title := WinGetTitle("A")
 	cid := WinGetId("A")
-	rslt := {title:title, cid:cid}
+	HWND := ControlGetFocus("A")
+	rslt := {title:title, cid:cid,hwnd:HWND}
 	return rslt
 }
 
@@ -180,7 +181,8 @@ SetMatch(A_GuiEvent, GuiCtrlObj, Info, *)
 	snippetGot := getMatchSnippet(toSend.sDict)
 	cid:= toSend.winInfo.cid
 	toFocus := "ahk_id " . cid
-	ControlFocus cid
+	hwnd := toSend.winInfo.hwnd
+
 	snippetForPos := StrReplace(snippetGot, "``n", "n")
 	iPos:=InStr(snippetForPos, "<@>")
 	l:=strlen(snippetForPos)
@@ -190,7 +192,13 @@ SetMatch(A_GuiEvent, GuiCtrlObj, Info, *)
 	n := l-iPos-2
 
 	snippetGot := StrReplace(snippetGot, "<@>")
+	; ControlFocus cid
+	winactivate toFocus
+	if(hwnd != 0){
+		controlfocus hwnd
+	}
 	SendInput "{Text}" snippetGot
+	; controlsend "{Text}" snippetGot, toFocus
 	if iPos{
 		Loop n
 		{
